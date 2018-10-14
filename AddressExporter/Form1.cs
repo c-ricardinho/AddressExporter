@@ -13,36 +13,6 @@ using System.Collections;
 
 namespace AddressExporter
 {
-    public class PropertiesClass
-    {
-        public string name { get; set; }
-        public object description { get; set; }
-        public string TerritoryType { get; set; }
-        public object TerritoryTypeCode { get; set; }
-        public string TerritoryTypeColor { get; set; }
-        public string TerritoryNumber { get; set; }
-        public object TerritoryNotes { get; set; }
-    }
-
-    public class GeometryClass
-    {
-        public string type { get; set; }
-        public List<List<List<double>>> coordinates { get; set; }
-    }
-
-    public class FeatureClass
-    {
-        public string type { get; set; }
-        public PropertiesClass properties { get; set; }
-        public GeometryClass geometry { get; set; }
-    }
-
-    public class RootObject
-    {
-        public string type { get; set; }
-        public List<FeatureClass> features { get; set; }
-    }
-
     public partial class Form1 : Form
     {
         public Form1()
@@ -61,23 +31,42 @@ namespace AddressExporter
                 textBoxLoadJSON.Text = strFilename;                
             }
 
-            //Call JSON function
+            loadJSON();
+        }
+
+        private void loadJSON()
+        {
+            DataTable DataTableTerritory = null;
+            DataTableTerritory = new DataTable();
+            DataColumn DataColumnTerritory = new DataColumn("Postcodes", typeof(string));
+            DataTableTerritory.Columns.Add(DataColumnTerritory);
+
             string fileJSON = File.ReadAllText(textBoxLoadJSON.Text);
             RootObject rootObject = JsonConvert.DeserializeObject<RootObject>(fileJSON);
 
-            int i = 0;
+            int RowIndex = 0;
 
             foreach (var featureCount in rootObject.features)
             {
-                //Console.WriteLine(i);
-                foreach (var coord in rootObject.features[i].geometry.coordinates[0])
-                {
-                    Console.WriteLine("{0},{1}", coord[0], coord[1]);
-                }
-                i++;
-            }
+                Console.WriteLine(RowIndex);
+                string mapcoordinates = "";
 
-            
+                DataRow DataRowTerritory = DataTableTerritory.NewRow();
+                
+                foreach (var coord in rootObject.features[RowIndex].geometry.coordinates[0])
+                {
+                    //Comma delimit postcodes
+                    mapcoordinates = mapcoordinates + coord[0] + "," + coord[1] + ",";
+                }
+
+                mapcoordinates = mapcoordinates.Substring(0, mapcoordinates.Length - 1);
+                
+                DataRowTerritory[0] = mapcoordinates.ToString();
+                DataTableTerritory.Rows.Add(DataRowTerritory);
+                //Console.WriteLine(DataTableTerritory.Rows[0].ItemArray[0].ToString());
+
+                RowIndex++;
+            }
         }
 
         private void buttonExportFolder_Click(object sender, EventArgs e)
